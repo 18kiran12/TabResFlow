@@ -157,7 +157,6 @@ class ResFlow(pl.LightningModule):
         )
 
         self.flow_model = zuko.flows.NSF(1, self.flow_hidden_dims, transforms=self.flow_num_blocks, hidden_features=[self.hidden_dim]*self.flow_layers)
-        # pdb.set_trace()
 
 
 
@@ -165,7 +164,7 @@ class ResFlow(pl.LightningModule):
     def forward(self, y, x_cont_enc):
         """Calculate the log probability of the model (batch). Method used only for training and validation."""
         c = self.base_model(x_cont_enc) 
-        loss = self.flow_model(c).log_prob(y)  # there was a negative sign here. check if the model does not train properly
+        loss = self.flow_model(c).log_prob(y) 
         loss += np.log(np.abs(np.prod(self.trainer.datamodule.target_scaler.scale_)))
         return loss
 
@@ -197,7 +196,6 @@ class ResFlow(pl.LightningModule):
         x_cont = X
         x_cont = x_cont
         con_mask = torch.ones_like(x_cont).long()
-        # pdb.set_trace()
 
         x_cont_enc = embed_data_mask_mlp_cont(x_cont, con_mask, self.base_model) 
 
@@ -233,13 +231,9 @@ class ResFlow(pl.LightningModule):
         samples = self._sample(x_cont_enc, num_samples)
 
         # Inverse target transformation
-        # samples: torch.Tensor = torch.cat(all_samples, dim=0)
         samples_size = samples.shape
         samples: np.ndarray = samples.detach().cpu().numpy()
-        # samples: np.ndarray = samples.reshape((samples_size[0] * samples_size[1], samples_size[2]))
         samples: np.ndarray = self.trainer.datamodule.target_scaler.inverse_transform(samples)
-        # samples: np.ndarray = samples.reshape((samples_size[0], samples_size[1], samples_size[2]))
-        # samples: np.ndarray = samples.squeeze()
         return samples
 
     def configure_optimizers(self) -> Any:
